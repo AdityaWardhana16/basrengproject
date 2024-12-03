@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout</title>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-7I6BvnB34szyRPDs"></script>
+</head>
+<body>
+  <!-- Header -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">Furni<span>.</span></a>
+    </div>
+  </nav>
+  
+  <!-- Checkout Section -->
+  <div class="container mt-5">
+    <h1>Checkout</h1>
+    <div id="checkout-items">
+      <!-- Items will be loaded dynamically -->
+    </div>
+    <div class="mt-4">
+      <h4>Total: Rp <span id="total-price">0</span></h4>
+      <button class="btn btn-success mt-3" id="pay-button">Pay Now</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer bg-dark text-white py-5 mt-5">
+    <div class="container text-center">
+      <p>© 2024 Furni. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Load cart items and calculate total price
+    function loadCheckout() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const checkoutItems = document.getElementById('checkout-items');
+      const totalPriceElement = document.getElementById('total-price');
+      let totalPrice = 0;
+
+      checkoutItems.innerHTML = '';
+
+      if (cart.length === 0) {
+        checkoutItems.innerHTML = '<p>Your cart is empty.</p>';
+        document.getElementById('pay-button').disabled = true;
+        return;
+      }
+
+      cart.forEach(item => {
+        const itemElement = document.createElement('div');
+        itemElement.classList.add('checkout-item', 'mb-3');
+        itemElement.innerHTML = `
+          <div class="d-flex align-items-center">
+            <img src="${item.image}" alt="${item.name}" class="img-fluid me-3" width="80">
+            <div>
+              <h5>${item.name}</h5>
+              <p>Rp ${item.price} x ${item.quantity}</p>
+            </div>
+          </div>
+        `;
+        checkoutItems.appendChild(itemElement);
+        totalPrice += item.price * item.quantity;
+      });
+
+      totalPriceElement.textContent = totalPrice.toLocaleString();
+    }
+
+    // Initiate Midtrans payment
+    document.getElementById('pay-button').addEventListener('click', function () {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+      // Simulate a backend call to get Snap token
+      fetch('http://localhost:3000/get-snap-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ items: cart, total_price: totalPrice })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Show Snap payment popup
+        snap.pay(data.token, {
+          onSuccess: function(result) {
+            alert('Payment successful!');
+            localStorage.removeItem('cart'); // Clear cart after successful payment
+            window.location.href = 'thankyou.html'; // Redirect to a thank you page
+          },
+          onPending: function(result) {
+            alert('Payment pending.');
+          },
+          onError: function(result) {
+            alert('Payment failed.');
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to process payment. Please try again.');
+      });
+    });
+
+    // Load checkout items on page load
+    window.onload = loadCheckout;
+  </script>
+</body>
+</html>

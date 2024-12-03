@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+
+  <script>
+    // Function to load cart items from LocalStorage
+    // Function to load cart items from LocalStorage
+	function loadCart() {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let cartContainer = document.getElementById('cart-container');
+    cartContainer.innerHTML = ''; // Kosongkan isi sebelumnya
+
+    if (cart.length === 0) {
+        cartContainer.innerHTML = '<p>Your cart is empty.</p>';
+    } else {
+        cart.forEach(item => {
+            let cartItem = document.createElement('div');
+            cartItem.classList.add('cart-item');
+            cartItem.innerHTML = `
+                <img src="${item.image}" alt="${item.name}" class="img-fluid" width="100"> <!-- Gunakan gambar dari LocalStorage -->
+                <div>
+                    <h3>${item.name}</h3>
+                    <p>Rp ${item.price}</p>
+                    <p>Quantity: ${item.quantity}</p>
+                </div>
+                <button onclick="removeFromCart(${item.id})" class="btn btn-danger">Remove</button>
+            `;
+            cartContainer.appendChild(cartItem);
+        });
+    }
+}
+
+
+function addToCart(id, name, price, image) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // Cek apakah produk sudah ada di keranjang
+    const existingItemIndex = cart.findIndex(item => item.id === id);
+    if (existingItemIndex > -1) {
+        cart[existingItemIndex].quantity += 1; // Jika sudah ada, tambah jumlah
+    } else {
+        cart.push({
+            id,
+            name,
+            price,
+            image, // Menyimpan gambar produk
+            quantity: 1
+        });
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart)); // Menyimpan data keranjang
+    alert(`${name} has been added to your cart.`);
+}
+
+
+// Function to remove product from cart
+function removeFromCart(productId) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart = cart.filter(item => item.id !== productId); // Remove the selected product
+    localStorage.setItem('cart', JSON.stringify(cart)); // Save back to LocalStorage
+    loadCart(); // Reload the cart after the product is removed
+}
+
+// Load cart items when the page loads
+window.onload = loadCart;
+
+
+    // Function to remove product from cart
+    function removeFromCart(productId) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart = cart.filter(item => item.id !== productId); // Remove the selected product
+        localStorage.setItem('cart', JSON.stringify(cart)); // Save back to LocalStorage
+        loadCart(); // Reload the cart after the product is removed
+    }
+
+    // Load cart items when the page loads
+    window.onload = loadCart;
+  </script>
+</head>
+
+<body>
+  <!-- Start Header/Navigation -->
+  <nav class="custom-navbar navbar navbar-expand-md navbar-dark bg-dark" aria-label="Furni navigation bar">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">Basreng<span>.</span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsFurni" aria-controls="navbarsFurni" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarsFurni">
+        <ul class="custom-navbar-nav navbar-nav ms-auto mb-2 mb-md-0">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li><a class="nav-link" href="shop.html">Shop</a></li>
+          <li><a class="nav-link" href="contact.html">Contact us</a></li>
+        </ul>
+        <ul class="custom-navbar-cta navbar-nav mb-2 mb-md-0 ms-5">
+          <li><a class="nav-link" href="#"><img src="images/user.svg" alt="User"></a></li>
+          <li><a class="nav-link" href="cart.html"><img src="images/cart.svg" alt="Cart"></a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <!-- End Header/Navigation -->
+
+  <!-- Cart Section -->
+  <div class="untree_co-section product-section before-footer-section">
+    <div class="container mt-5">
+      <h1>Shopping Cart</h1>
+      <div id="cart-container">
+        <!-- Cart items will be loaded here -->
+      </div>
+      <button class="btn btn-success mt-4" onclick="window.location.href='checkout.html'">Proceed to Checkout</button>
+      <a href="shop.html" class="btn btn-secondary mt-4">Continue Shopping</a>
+    </div>
+  </div>
+  <!-- End Cart Section -->
+
+  <!-- Footer -->
+  <footer class="footer bg-dark text-white py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <h5>About Us</h5>
+          <p>Furni, high-quality furniture with authentic flavors that delight the senses.</p>
+        </div>
+        <div class="col-md-4">
+          <h5>Navigation</h5>
+          <ul class="list-unstyled">
+            <li><a href="index.html" class="text-white text-decoration-none">Home</a></li>
+            <li><a href="shop.html" class="text-white text-decoration-none">Shop</a></li>
+            <li><a href="contact.html" class="text-white text-decoration-none">Contact us</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4">
+          <h5>Follow Us</h5>
+          <a href="#" class="text-white">Facebook</a> | <a href="#" class="text-white">Instagram</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
+
+
