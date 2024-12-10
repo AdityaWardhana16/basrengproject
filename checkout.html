@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-7I6BvnB34szyRPDs"></script>
+  <link rel="shortcut icon" href="images/6.png">
+
+  <script>
+    // Load cart items and display them
+    function loadCart() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cartContainer = document.getElementById('cart-container');
+      const totalContainer = document.getElementById('total-price');
+      cartContainer.innerHTML = ''; // Clear container
+      let totalPrice = 0;
+
+      if (cart.length === 0) {
+        cartContainer.innerHTML = '<p>Your cart is empty.</p>';
+        document.getElementById('pay-button').disabled = true;
+        return;
+      }
+
+      cart.forEach(item => {
+        const cartItem = document.createElement('div');
+        cartItem.classList.add('cart-item', 'd-flex', 'align-items-center', 'mb-3');
+        cartItem.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" class="img-fluid me-3" width="80">
+          <div>
+            <h5>${item.name}</h5>
+            <p>Rp ${item.price.toLocaleString()} x ${item.quantity}</p>
+          </div>
+          <button onclick="removeFromCart(${item.id})" class="btn btn-danger ms-auto">Remove</button>
+        `;
+        cartContainer.appendChild(cartItem);
+        totalPrice += item.price * item.quantity;
+      });
+
+      totalContainer.textContent = `Rp ${totalPrice.toLocaleString()}`;
+    }
+
+    // Remove product from cart
+    function removeFromCart(productId) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cart = cart.filter(item => item.id !== productId); // Remove item
+      localStorage.setItem('cart', JSON.stringify(cart));
+      loadCart(); // Reload cart
+    }
+
+    // Handle payment process
+    function proceedToPayment() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+      fetch('http://localhost:3000/get-snap-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ items: cart, total_price: totalPrice })
+      })
+      .then(response => response.json())
+      .then(data => {
+        snap.pay(data.token, {
+          onSuccess: function(result) {
+            alert('Payment successful!');
+            localStorage.removeItem('cart');
+            window.location.href = 'thankyou.html';
+          },
+          onPending: function(result) {
+            alert('Payment pending.');
+          },
+          onError: function(result) {
+            alert('Payment failed.');
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to process payment. Please try again.');
+      });
+    }
+
+    // Load cart on page load
+    window.onload = loadCart;
+  </script>
+</head>
+
+<body>
+  <!-- Header/Navigation -->
+  <nav class="custom-navbar navbar navbar-expand-md navbar-dark bg-dark" aria-label="Furni navigation bar">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">BASRENG<span>.</span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsFurni" aria-controls="navbarsFurni" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarsFurni">
+        <ul class="custom-navbar-nav navbar-nav ms-auto mb-2 mb-md-0">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li><a class="nav-link" href="shop.html">Shop</a></li>
+        </ul>
+        <ul class="custom-navbar-cta navbar-nav mb-2 mb-md-0 ms-5">
+          <li><a class="nav-link" href="cart.html"><img src="images/cart.svg" alt="Cart"></a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Checkout Section -->
+  <div class="untree_co-section product-section before-footer-section">
+    <div class="container mt-5">
+      <h1 class="text-center mb-5">Checkout</h1>
+      <div id="cart-container">
+        <!-- Cart items will be dynamically loaded -->
+      </div>
+      <div class="mt-4">
+        <h4>Total: <span id="total-price">Rp 0</span></h4>
+        <button class="btn btn-success mt-3" id="pay-button" onclick="proceedToPayment()">Pay Now</button>
+        <a href="shop.html" class="btn btn-secondary mt-3">Continue Shopping</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer bg-dark text-white py-5">
+    <div class="container text-center">
+      <p>© 2024 Furni. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>
